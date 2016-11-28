@@ -48,17 +48,47 @@
     for (NSInteger i = 0; i < count; i++) {
         id subModel = [list objectAtIndex:i];
         if ([subModel isKindOfClass:[NSString class]]) {
-            if (debugModel.content) {
-                debugModel.content = [debugModel.content stringByAppendingFormat:@"\n%@", subModel];
+            DebugModel *model = [[DebugModel alloc] init];
+            NSString *key = [NSString stringWithFormat:@"Item[%zd]", i];
+            model.key = key;
+            model.keyWidth = [key sizeWithConstrainedToSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX) font:[UIFont systemFontOfSize:10]].width;;
+            model.content = subModel;
+            CGSize contentSize = [subModel sizeWithConstrainedToSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX) font:[UIFont systemFontOfSize:10]];
+            model.contentWidth = contentSize.width;
+            model.cellHeight = contentSize.height;
+            model.canPackup = NO;
+            model.degree = debugModel.degree+1;
+            model.nodeNo = 0;
+            if (debugModel.subList) {
+                NSMutableArray *subList = [debugModel.subList mutableCopy];
+                [subList addObject:model];
+                debugModel.subList = subList;
+                debugModel.nodeNo = subList.count;
             }else {
-                debugModel.content = subModel;
+                debugModel.subList = @[model];
+                debugModel.nodeNo = 1;
             }
         }
         else if ([subModel isKindOfClass:[NSNumber class]]) {
-            if (debugModel.content) {
-                debugModel.content = [debugModel.content stringByAppendingFormat:@"\n%@", subModel];
+            DebugModel *model = [[DebugModel alloc] init];
+            NSString *key = [NSString stringWithFormat:@"Item[%zd]", i];
+            model.key = key;
+            model.keyWidth = [key sizeWithConstrainedToSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX) font:[UIFont systemFontOfSize:10]].width;;
+            model.content = [NSString stringWithFormat:@"%@", subModel];
+            CGSize contentSize = [subModel sizeWithConstrainedToSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX) font:[UIFont systemFontOfSize:10]];
+            model.contentWidth = contentSize.width;
+            model.cellHeight = contentSize.height;
+            model.canPackup = NO;
+            model.degree = debugModel.degree+1;
+            model.nodeNo = 0;
+            if (debugModel.subList) {
+                NSMutableArray *subList = [debugModel.subList mutableCopy];
+                [subList addObject:model];
+                debugModel.subList = subList;
+                debugModel.nodeNo = subList.count;
             }else {
-                debugModel.content = subModel;
+                debugModel.subList = @[model];
+                debugModel.nodeNo = 1;
             }
         }
         else if ([subModel isKindOfClass:[NSDictionary class]]) {
