@@ -21,12 +21,13 @@
 
 @property (nonatomic, strong) NSArray *subList;
 
-@property (nonatomic, assign, getter=isOpen) BOOL open;
-
 @property (nonatomic, assign) NSInteger degree;
 
 @property (nonatomic, assign) CGFloat keyWidth;
 @property (nonatomic, assign) CGFloat contentWidth;
 @property (nonatomic, assign) CGFloat cellHeight;
+
+@property (nonatomic, assign, getter=isOpen) BOOL open;
+
 
 @end

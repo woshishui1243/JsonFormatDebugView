@@ -10,6 +10,10 @@
 
 @implementation DebugModel
 
+- (NSString *)description {
+    return [NSString stringWithFormat:@"%@ : %@", self.key, self.content];
+}
+
 - (id)copyWithZone:(NSZone *)zone {
     DebugModel *model = [[DebugModel alloc] init];
     model.key = self.key;

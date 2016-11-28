@@ -9,6 +9,7 @@
 #import "ViewController.h"
 #import "DebugModel.h"
 #import "DebugNetViewCell.h"
+#import "NSString+Extension.h"
 
 @interface ViewController ()<UITableViewDelegate, UITableViewDataSource>
 
@@ -36,7 +37,7 @@
     tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     tableView.dataSource = self;
     tableView.delegate = self;
-    tableView.rowHeight = 17;
+    tableView.rowHeight = 14;
     [self.view addSubview:tableView];
     self.tableView = tableView;
     self.dataList = [self configureData:self.dict degree:0];
@@ -61,18 +62,28 @@
             }
         }
         else if ([subModel isKindOfClass:[NSDictionary class]]) {
-            NSMutableArray *subList = [self configureData:subModel degree:debugModel.degree+1];
-            debugModel.content = @"数组";
-            debugModel.canPackup = YES;
+            NSDictionary *subDict = (NSDictionary *)subModel;
+            DebugModel *model = [[DebugModel alloc] init];
+            NSString *key = [NSString stringWithFormat:@"Item[%zd]", i];
+            model.key = key;
+            model.keyWidth = [key sizeWithConstrainedToSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX) font:[UIFont systemFontOfSize:10]].width;
+            NSString *content = [NSString stringWithFormat:@"Dictionary{%zd}", subDict.count];
+            model.content = content;
+            model.contentWidth = [content sizeWithConstrainedToSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX) font:[UIFont systemFontOfSize:10]].width;
+            model.cellHeight = 14;
+            model.canPackup = YES;
+            model.degree = debugModel.degree+1;
+            NSMutableArray *subList = [self configureData:subDict degree:model.degree+1];
+            model.subList = subList;
+            model.nodeNo = subList.count;
             if (debugModel.subList) {
-                NSMutableArray *contentList = [NSMutableArray arrayWithCapacity:(debugModel.subList.count + subList.count)];
-                [contentList addObjectsFromArray:debugModel.subList];
-                [contentList addObjectsFromArray:subList];
-                debugModel.subList = contentList;
-                debugModel.nodeNo = contentList.count;
-            }else {
+                NSMutableArray *subList = [debugModel.subList mutableCopy];
+                [subList addObject:model];
                 debugModel.subList = subList;
                 debugModel.nodeNo = subList.count;
+            }else {
+                debugModel.subList = @[model];
+                debugModel.nodeNo = 1;
             }
         }
         else if ([subModel isKindOfClass:[NSArray class]]) {
@@ -87,10 +98,10 @@
         DebugModel *model = [[DebugModel alloc] init];
         model.key = key;
         model.degree = degree;
-        model.keyWidth = [key boundingRectWithSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX) options:(NSStringDrawingTruncatesLastVisibleLine|NSStringDrawingUsesLineFragmentOrigin| NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:10]} context:nil].size.width;
+        model.keyWidth = [key sizeWithConstrainedToSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX) font:[UIFont systemFontOfSize:10]].width;
         if ([obj isKindOfClass:[NSString class]]) {
             model.content = obj;
-            CGSize contentSize = [obj boundingRectWithSize:CGSizeMake([UIScreen mainScreen].bounds.size.width - model.keyWidth - 28 - model.degree * 5 - 24, CGFLOAT_MAX) options:(NSStringDrawingTruncatesLastVisibleLine|NSStringDrawingUsesLineFragmentOrigin| NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:10]} context:nil].size;
+            CGSize contentSize = [obj sizeWithConstrainedToSize:CGSizeMake([UIScreen mainScreen].bounds.size.width - model.keyWidth - 28 - model.degree * 5 - 24, CGFLOAT_MAX) font:[UIFont systemFontOfSize:10]];
             model.contentWidth = contentSize.width;
             model.cellHeight = contentSize.height + 4;
 
@@ -98,27 +109,30 @@
             NSNumber *number = (NSNumber *)obj;
             NSString *noString = [NSString stringWithFormat:@"%@", number];
             model.content = noString;
-            CGSize contentSize = [noString boundingRectWithSize:CGSizeMake([UIScreen mainScreen].bounds.size.width - model.keyWidth - 28 - model.degree * 5 - 24, CGFLOAT_MAX) options:(NSStringDrawingTruncatesLastVisibleLine|NSStringDrawingUsesLineFragmentOrigin| NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:10]} context:nil].size;
+            CGSize contentSize = [noString sizeWithConstrainedToSize:CGSizeMake([UIScreen mainScreen].bounds.size.width - model.keyWidth - 28 - model.degree * 5 - 24, CGFLOAT_MAX) font:[UIFont systemFontOfSize:10]];
             model.contentWidth = contentSize.width;
             model.cellHeight = contentSize.height + 4;
         }
         else if ([obj isKindOfClass:[NSArray class]]){
             NSArray *subArray = (NSArray *)obj;
+            model.canPackup = YES;
             [self configureListData:subArray debugModel:model];
-            model.cellHeight = 17;
-            model.content = @"[数组]";
-//            model.content = [NSString stringWithFormat:@"[%@]", listStr];
-//            CGSize contentSize = [model.content boundingRectWithSize:CGSizeMake([UIScreen mainScreen].bounds.size.width - model.keyWidth - 28 - model.degree * 5  - 24, CGFLOAT_MAX) options:(NSStringDrawingTruncatesLastVisibleLine|NSStringDrawingUsesLineFragmentOrigin| NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:10]} context:nil].size;
-//            model.cellHeight = contentSize.height + 4;
+            model.nodeNo = model.subList.count;
+            model.cellHeight = 14;
+            NSString *content = [NSString stringWithFormat:@"Array[%zd]", subArray.count];
+            model.content = content;
+            model.contentWidth = [content sizeWithConstrainedToSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX) font:[UIFont systemFontOfSize:10]].width;
         }else if ([obj isKindOfClass:[NSDictionary class]]){
             NSDictionary *subDict = (NSDictionary *)obj;
             model.canPackup = YES;
             model.nodeNo = subDict.count;
-            model.content = @"字典";
+            NSString *content = [NSString stringWithFormat:@"Dictionary{%zd}", subDict.count];
+            model.content = content;
+            model.contentWidth = [content sizeWithConstrainedToSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX) font:[UIFont systemFontOfSize:10]].width;
             NSInteger newDegree = degree+1;
             NSMutableArray *subList = [self configureData:subDict degree:newDegree];
             model.subList = subList;
-            model.cellHeight = 17;
+            model.cellHeight = 14;
         }
         [dataList addObject:model];
     }];
@@ -150,15 +164,16 @@
         return;
     }
     if (model.isOpen) {
-//        [self.dataList removeObjectsInRange:NSMakeRange(indexPath.row+1, model.nodeNo)];
         NSInteger count = [self countOfNode:model];
         [self.dataList removeObjectsInRange:NSMakeRange(indexPath.row+1, count)];
 
     }else {
         NSMutableArray *dataList = [NSMutableArray arrayWithCapacity:self.dataList.count+model.nodeNo];
-        [dataList addObjectsFromArray:[self.dataList objectsAtIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, indexPath.row+1)]]];
+        NSArray *beforeList = [self.dataList objectsAtIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, indexPath.row+1)]];
+        [dataList addObjectsFromArray:beforeList];
         [dataList addObjectsFromArray:model.subList];
-        [dataList addObjectsFromArray:[self.dataList objectsAtIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(indexPath.row+1, self.dataList.count-(indexPath.row+1))]]];
+        NSArray *afterList = [self.dataList objectsAtIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(indexPath.row+1, self.dataList.count-(indexPath.row+1))]];
+        [dataList addObjectsFromArray:afterList];
         self.dataList = dataList;
     }
     model.open = !model.isOpen;
