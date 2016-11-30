@@ -40,6 +40,7 @@ static NSString *const identifier = @"DebugViewCell";
         UILabel *contentLabel = [[UILabel alloc] initWithFrame:CGRectMake(100, 10, 200, 15)];
         contentLabel.font = [UIFont systemFontOfSize:10];
         contentLabel.numberOfLines = 0;
+        contentLabel.lineBreakMode = NSLineBreakByCharWrapping;
         contentLabel.textAlignment = NSTextAlignmentLeft;
         [self.contentView addSubview:contentLabel];
         self.contentLabel = contentLabel;
@@ -47,7 +48,6 @@ static NSString *const identifier = @"DebugViewCell";
         UIButton *arrowBtn = [[UIButton alloc] initWithFrame:CGRectMake(8, 0, 12, 12)];
         [arrowBtn setImage:[UIImage imageNamed:@"add"] forState:UIControlStateNormal];
         arrowBtn.userInteractionEnabled = NO;
-//        [arrowBtn addTarget:self action:@selector(arrowBtnDidClick:) forControlEvents:UIControlEventTouchUpInside];
         [self.contentView addSubview:arrowBtn];
         self.arrowBtn = arrowBtn;
     }
@@ -63,7 +63,6 @@ static NSString *const identifier = @"DebugViewCell";
     self.keyLabel.hidden = !model.key;
     self.contentLabel.hidden = !model.content;
     self.contentLabel.text = model.content;
-    
     self.keyLabel.frame = CGRectMake(28+model.degree*5, 2, model.keyWidth, 13);
     self.arrowBtn.frame = CGRectMake(8+model.degree*5, 2, 12, 12);
     self.contentLabel.frame = CGRectMake(28+model.keyWidth+12+model.degree*5, 2, model.contentWidth, model.cellHeight-4);

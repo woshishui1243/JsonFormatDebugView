@@ -11,6 +11,8 @@
 #import "DebugNetViewCell.h"
 #import "NSString+Extension.h"
 
+#define SCREEN_WIDTH [UIScreen mainScreen].bounds.size.width
+
 @interface ViewController ()<UITableViewDelegate, UITableViewDataSource>
 
 @property (nonatomic, strong) UITableView *tableView;
@@ -32,12 +34,11 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-
+    
     UITableView *tableView = [[UITableView alloc] initWithFrame:self.view.bounds style:UITableViewStylePlain];
     tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     tableView.dataSource = self;
     tableView.delegate = self;
-    tableView.rowHeight = 14;
     [self.view addSubview:tableView];
     self.tableView = tableView;
     self.dataList = [self configureData:self.dict degree:0];
@@ -51,13 +52,16 @@
             DebugModel *model = [[DebugModel alloc] init];
             NSString *key = [NSString stringWithFormat:@"Item[%zd]", i];
             model.key = key;
-            model.keyWidth = [key sizeWithConstrainedToSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX) font:[UIFont systemFontOfSize:10]].width;;
+            model.keyWidth = ceil([key sizeWithConstrainedToSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX) font:[UIFont systemFontOfSize:10]].width);
+            NSLog(@"%@ subModel = %@ = %.0f", model.key, subModel, model.keyWidth);
             model.content = subModel;
-            CGSize contentSize = [subModel sizeWithConstrainedToSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX) font:[UIFont systemFontOfSize:10]];
-            model.contentWidth = contentSize.width;
-            model.cellHeight = contentSize.height;
-            model.canPackup = NO;
             model.degree = debugModel.degree+1;
+            CGFloat maxWidth = ceil(SCREEN_WIDTH - model.keyWidth - 28 - model.degree * 5 - 24);
+            
+            CGSize contentSize = [subModel sizeWithConstrainedToSize:CGSizeMake(maxWidth, CGFLOAT_MAX) font:[UIFont systemFontOfSize:10]];
+            model.contentWidth = ceil(contentSize.width);
+            model.cellHeight = ceil(contentSize.height)+4;
+            model.canPackup = NO;
             model.nodeNo = 0;
             if (debugModel.subList) {
                 NSMutableArray *subList = [debugModel.subList mutableCopy];
@@ -75,11 +79,11 @@
             model.key = key;
             model.keyWidth = [key sizeWithConstrainedToSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX) font:[UIFont systemFontOfSize:10]].width;;
             model.content = [NSString stringWithFormat:@"%@", subModel];
-            CGSize contentSize = [subModel sizeWithConstrainedToSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX) font:[UIFont systemFontOfSize:10]];
+            model.degree = debugModel.degree+1;
+            CGSize contentSize = [subModel sizeWithConstrainedToSize:CGSizeMake(SCREEN_WIDTH - model.keyWidth - 28 - model.degree * 5 - 24, CGFLOAT_MAX) font:[UIFont systemFontOfSize:10]];
             model.contentWidth = contentSize.width;
             model.cellHeight = contentSize.height;
             model.canPackup = NO;
-            model.degree = debugModel.degree+1;
             model.nodeNo = 0;
             if (debugModel.subList) {
                 NSMutableArray *subList = [debugModel.subList mutableCopy];
@@ -117,7 +121,28 @@
             }
         }
         else if ([subModel isKindOfClass:[NSArray class]]) {
-            [self configureListData:subModel debugModel:debugModel];
+            NSArray *subList = (NSArray *)subModel;
+            DebugModel *model = [[DebugModel alloc] init];
+            NSString *key = [NSString stringWithFormat:@"Item[%zd]", i];
+            model.key = key;
+            model.keyWidth = [key sizeWithConstrainedToSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX) font:[UIFont systemFontOfSize:10]].width;
+            NSString *content = [NSString stringWithFormat:@"Array[%zd]", subList.count];
+            model.content = content;
+            model.contentWidth = [content sizeWithConstrainedToSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX) font:[UIFont systemFontOfSize:10]].width;
+            model.cellHeight = 14;
+            model.canPackup = YES;
+            model.degree = debugModel.degree+1;
+            [self configureListData:subModel debugModel:model];
+            model.nodeNo = subList.count;
+            if (debugModel.subList) {
+                NSMutableArray *subList = [debugModel.subList mutableCopy];
+                [subList addObject:model];
+                debugModel.subList = subList;
+                debugModel.nodeNo = subList.count;
+            }else {
+                debugModel.subList = @[model];
+                debugModel.nodeNo = 1;
+            }
         }
     }
 }

@@ -11,6 +11,10 @@
 @implementation NSString (Extension)
 
 - (CGSize)sizeWithConstrainedToSize:(CGSize)size font:(UIFont *)font {
-    return [self boundingRectWithSize:size options:(NSStringDrawingTruncatesLastVisibleLine|NSStringDrawingUsesLineFragmentOrigin| NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName: font} context:nil].size;
+    
+    NSMutableParagraphStyle *style = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
+    style.lineBreakMode = NSLineBreakByCharWrapping;
+    style.alignment = NSTextAlignmentLeft;
+    return [self boundingRectWithSize:size options:(NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName: font,NSParagraphStyleAttributeName:style} context:nil].size;
 }
 @end
